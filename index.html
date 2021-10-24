@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>PDF labler</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: black;
+            color: #fbfbfb;
+            font-family: 'Roboto Mono', monospace;
+            display: flex;
+            justify-content: center;
+        }
+        #app {
+            max-width: 1000px;
+            width: 100%;
+        }
+        .file-opener, .file-saver {
+            background-color: #082a5b;
+            border: none;
+            padding: 5px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            color: #fbfbfb;
+            text-align: center;
+        }
+        .file-opener *, .file-saver * {
+            transition-duration: 0.2s;
+        }
+        .file-opener *:hover, .file-saver *:hover {
+            color: #999;
+        }
+        .file-opener {
+            display: grid;
+            align-items: center;
+        }
+        .file-saver {
+            display: grid;
+            align-items: center;
+            grid-template-columns: 1fr 1fr;
+        }
+        .save-button {
+            border-left: dashed #555 2px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error {
+            background-color: #5b0908;
+            border: none;
+            padding: 23px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            color: #fbfbfb;
+        }
+        .lable {
+            background-color: #272727;
+            padding: 5px 20px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+        .lable select, input {
+            background-color: #101010;
+            border: none;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            color: #fbfbfb;
+            width: 100%;
+            max-width: 200px;
+        }
+        input::placeholder {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .delete-button {
+            color: #bbb;
+            text-decoration: underline;
+        }
+        .delete-button:hover {
+            color: #999;
+        }
+        .button {
+            background-color: #082a5b;
+            border: none;
+            padding: 23px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            color: #fbfbfb;
+            text-align: center;
+        }
+        .loading {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(20,20,20,0.7);
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .loading:after {
+            content: '';
+            height: 100px;
+            width: 100px;
+            border-radius: 100px;
+            border: solid 15px;
+            border-color: white transparent;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            animation-name: rotate;
+            animation-iteration-count: infinite;
+            animation-duration: 1s;
+        }
+        @keyframes rotate {
+            from {transform: rotate(0deg) scale(1); border-color: white transparent;}
+            50% {transform: rotate(180deg) scale(0.9); border-color: #082a5b transparent;}
+            to {transform: rotate(360deg); border-color: white transparent;}
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <input type="file" id="file" style="display: none;" @change="openPdf" accept=".pdf">
+    <h1>PDF labler</h1>
+    <p>Easily change the page lable of your PDFs!</p>
+    <div class="file-opener" v-if="!pdfOpened">
+        <label for="file"><div>
+            <h2>Select PDF to open:</h2>
+            <p>Click to open file</p>
+        </div></label>
+    </div>
+    <div class="file-saver" v-if="pdfOpened">
+        <label for="file"><div>
+            <h2>{{ pdfName }}</h2>
+            <p>Click to open a different file</p>
+        </div></label>
+        <div class="save-button" @click="savePdf">
+            <h2>Save -></h2>
+        </div>
+    </div>
+    <div v-if="error != ''" class="error">{{error}}</div>
+    <div v-if="pdfOpened">
+        <div v-for="(lable, i) in lables" class="lable">
+            <span style="white-space:nowrap">Position:<input type="number" min="0" :max="pdfPages" v-model="lable.n" @change="sort"></span>
+            <span style="white-space:nowrap">Numeration type:<select v-model="lable.S" name="type">
+                <option value="D">Decimal arabic numerals</option>
+                <option value="R">Uppercase roman numerals</option>
+                <option value="r">Lowercase roman numerals</option>
+                <option value="A">Uppercase letters</option>
+                <option value="a">Lowercase letters</option>
+                <option value="">Single lable</option>
+            </select></span>
+            <span style="white-space:nowrap">{{lable.S == '' ? 'Value' : 'Prefix'}}:
+            <input type="text" v-model="lable.P" placeholder="(empty)"></span>
+            <span v-if="lable.S != ''" style="white-space:nowrap">Count start:<input type="number" min="1" v-model="lable.St"></span>
+            <span class="delete-button" v-if="lables.length != 1" :id="i" @click="deleteLable" style="white-space:nowrap">Delete Label</span>
+        </div>
+        <div @click="addLable" class="button">+ Add</div>
+    </div>
+    <div class="loading" v-if="loading"></div>
+</div>
+<script>
+let pdf;
+let pdfLibLoaded = false;
+var app = new Vue({
+    el: '#app',
+    data: {
+        loading: false,
+        error: '',
+        pdfOpened: false,
+        pdfName: "",
+        pdfPages: 20,
+        lables: [],
+        openPdf(e) {
+            console.log(e.target.files);
+            if (e.target.files.length == 0) return;
+            app.loading = true;
+            app.pdfName = e.target.files[0].name;
+            var reader = new FileReader();
+            reader.onload = async function(ev) {
+                await loadScripts(['https://unpkg.com/pdf-lib']).catch(() => {
+                    app.loading = false;
+                    app.error = "Unable to load PDF processor";
+                });
+                pdf = await PDFLib.PDFDocument.load(ev.target.result).catch(() => {
+                    app.loading = false;
+                    app.error = "Bad PDF";
+                });
+                if (pdf == undefined) {
+                    app.loading = false;
+                    app.error = "Bad PDF";
+                    return;
+                }
+                console.log("Successfully read file");
+                app.pdfPages = pdf.getPageCount();
+                let lablesDict = pdf.catalog.get(PDFLib.PDFName.of('PageLabels'));
+                if (lablesDict == undefined) {
+                    app.lables = [{n: 0, S:'D', St:0}];
+                    app.pdfOpened = true;
+                    app.error = "";
+                    app.loading = false;
+                    return;
+                }
+                let lables = lablesDict.get(PDFLib.PDFName.of('Nums')).asArray();
+                app.lables = [];
+                for (i = 0; i < lables.length; i+=2) {
+                    app.lables.push({
+                        n:lables[i].numberValue, 
+                        S:lables[i+1].get(PDFLib.PDFName.of('S'))?.decodeText() || 'single',
+                        P:lables[i+1].get(PDFLib.PDFName.of('P'))?.decodeText(),
+                        St:lables[i+1].get(PDFLib.PDFName.of('St'))?.numberValue || 0
+                    });
+                }
+                if (app.lables.length == 0) app.lables.push({n: 0, S:'D', St:0});
+                app.pdfOpened = true;
+                app.error = "";
+                app.loading = false;
+            };
+            reader.onerror = function(err) {
+                console.error("Failed to read file", err);
+                app.error = "Unable to load file";
+                app.loading = false;
+            }
+            reader.readAsArrayBuffer(e.target.files[0]);
+        },
+        addLable() {
+            app.lables.push({S:'D', St:1, n:Number(app.lables[app.lables.length-1].n)+1});
+        },
+        deleteLable(e) {
+            app.lables.splice(e.target.getAttribute('id'), 1)
+        },
+        sort() {
+            app.lables.sort((a, b)=>Number(a.n)-Number(b.n));
+        },
+        async savePdf() {
+            app.loading = true;
+
+            if (app.lables.length == 1 && app.lables[0].n == 0 && app.lables[0].S == "D" && (app.lables[0].P == 0 || app.lables == undefined) && app.lables[0].St == 0) {
+                pdf.catalog.remove(PDFLib.PDFName.of('PageLabels'));
+            } else {
+                let newLables = [];
+                
+                app.lables.forEach((l) => {
+                    newLables.push(Number(l.n));
+                    let c = {};
+                    if (l.S != 'single') c.S = l.S;
+                    if (l.P != undefined && l.P != "") c.P = PDFLib.PDFHexString.fromText(l.P);
+                    if (l.St != '0') c.St = Number(l.St);
+                    newLables.push(c);
+                });
+                const pageLabels = pdf.context.obj({
+                    Nums: newLables
+                });
+
+                pdf.catalog.set(PDFLib.PDFName.of('PageLabels'), pageLabels);
+            }
+
+            const pdfBytes = await pdf.save();
+            let link = document.createElement('a');
+            link.download = app.pdfName;
+
+            let blob = new Blob([pdfBytes.buffer], {type: 'text/plain'});
+
+            link.href = URL.createObjectURL(blob);
+
+            link.click();
+
+            URL.revokeObjectURL(link.href);
+            app.loading = false;
+        }
+    }
+});
+
+function loadScripts(scripts) {
+    return new Promise((resolve, reject) => {
+        if (scripts.lenght == 0) resolve();
+        let counter = 0;
+        scripts.forEach(url => {
+            let script = document.createElement('script');
+            script.onload = () => {
+                counter++;
+                if (counter >= scripts.length) {
+                    resolve();
+                }
+            }
+            script.onerror = () => {
+                reject();
+            }
+            script.src = url;
+            document.body.appendChild(script);
+        });
+    });
+}
+</script>
+</body>
+</html>
