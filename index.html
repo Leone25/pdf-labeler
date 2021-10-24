@@ -178,7 +178,6 @@ var app = new Vue({
         error: '',
         pdfOpened: false,
         pdfName: "",
-        pdfPages: 20,
         lables: [],
         openPdf(e) {
             console.log(e.target.files);
@@ -204,7 +203,7 @@ var app = new Vue({
                 app.pdfPages = pdf.getPageCount();
                 let lablesDict = pdf.catalog.get(PDFLib.PDFName.of('PageLabels'));
                 if (lablesDict == undefined) {
-                    app.lables = [{n: 0, S:'D', St:0}];
+                    app.lables = [{n: 0, S:'D', St:1}];
                     app.pdfOpened = true;
                     app.error = "";
                     app.loading = false;
@@ -220,7 +219,7 @@ var app = new Vue({
                         St:lables[i+1].get(PDFLib.PDFName.of('St'))?.numberValue || 0
                     });
                 }
-                if (app.lables.length == 0) app.lables.push({n: 0, S:'D', St:0});
+                if (app.lables.length == 0) app.lables.push({n: 0, S:'D', St:1});
                 app.pdfOpened = true;
                 app.error = "";
                 app.loading = false;
@@ -244,7 +243,7 @@ var app = new Vue({
         async savePdf() {
             app.loading = true;
 
-            if (app.lables.length == 1 && app.lables[0].n == 0 && app.lables[0].S == "D" && (app.lables[0].P == 0 || app.lables == undefined) && app.lables[0].St == 0) {
+            if (app.lables.length == 1 && app.lables[0].n == 0 && app.lables[0].S == "D" && (app.lables[0].P == 0 || app.lables == undefined) && app.lables[0].St == 1) {
                 pdf.catalog.remove(PDFLib.PDFName.of('PageLabels'));
             } else {
                 let newLables = [];
