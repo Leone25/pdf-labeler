@@ -166,6 +166,23 @@
         </div>
         <div @click="addLable" class="button">+ Add</div>
     </div>
+    <h1>FAQ</h1>
+    <h2>What are PDF page lables?</h2>
+    <p>Page lables in PDFs are a way to identify each page. They are the classic arabic numerals(1,2,3,4...), but also other types of numeration like roman numerals(I,II,III,IV...). This application allows to mix and match them, to reflect the content of the document and ease navigation.</p>
+    <h2>What kind PDF page lables exist?</h2>
+    <p>In the PDF specification, there are 6 built in styles for page lables:
+        <ul>
+            <li>Arabic numerals</li>
+            <li>Uppercase roman numerals</li>
+            <li>Lowercase roman numerals</li>
+            <li>Uppercase letters</li>
+            <li>Lowercase letters</li>
+            <li>Custom lable/li>
+        </ul>
+    In a PDF you can freely mix and match this to your liking. For example you could use a custom lable to make the cover/first page of your document, then uppercase roman numerals for the index, and lastly arabic numerals for the actual content of your document.
+    </p>
+    <h2>How do I use the website?</h2>
+    <p>Once selected a document, you'll be presented with the list of already existing page lables, you can then create new page lables, select a syle, a prefix and a starting number. Once you are done you can click save and the modified document will be downloaded.</p>
     <div class="loading" v-if="loading"></div>
 </div>
 <script>
