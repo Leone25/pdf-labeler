@@ -219,8 +219,9 @@ var app = new Vue({
             app.pdfName = e.target.files[0].name;
             var reader = new FileReader();
             reader.onload = async function(ev) {
-                if (pdfLibLoaded == false) try await loadScripts(['https://unpkg.com/pdf-lib'])
-                    catch () {
+                try {
+                    if (pdfLibLoaded == false) await loadScripts(['https://unpkg.com/pdf-lib']);
+                } catch () {
                         app.loading = false;
                         app.error = "Unable to load PDF processor";
                         return;
