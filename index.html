@@ -143,7 +143,7 @@
 <div id="app">
     <input type="file" id="file" style="display: none;" @change="openPdf" accept=".pdf">
     <h1>PDF labeler</h1>
-    <p>Easily change the page lable of your PDFs!</p>
+    <p>Easily change the page label of your PDFs!</p>
     <div class="file-opener" v-if="!pdfOpened">
         <label for="file"><div>
             <h2>Select PDF to open:</h2>
@@ -169,7 +169,7 @@
                 <option value="r">Lowercase roman numerals</option>
                 <option value="A">Uppercase letters</option>
                 <option value="a">Lowercase letters</option>
-                <option value="">Single lable</option>
+                <option value="">Single label</option>
             </select></span>
             <span style="white-space:nowrap">{{lable.S == '' ? 'Value' : 'Prefix'}}:
             <input type="text" v-model="lable.P" placeholder="(empty)"></span>
@@ -179,26 +179,26 @@
         <div @click="addLable" class="button">+ Add</div>
     </div>
     <h1>FAQ</h1>
-    <h2>What are PDF page lables?</h2>
-    <p>Page lables in PDFs are a way to identify each page. They are the classic arabic numerals(1,2,3,4...), but also other types of numeration like roman numerals(I,II,III,IV...). This application allows to mix and match them, to reflect the content of the document and ease navigation.</p>
-    <h2>What kind PDF page lables exist?</h2>
-    <p>In the PDF specification, there are 6 built in styles for page lables:
+    <h2>What are PDF page labels?</h2>
+    <p>Page labels in PDFs are a way to identify each page. They are the classic arabic numerals(1,2,3,4...), but also other types of numeration like roman numerals(I,II,III,IV...). This application allows to mix and match them, to reflect the content of the document and ease navigation.</p>
+    <h2>What kind PDF page labels exist?</h2>
+    <p>In the PDF specification, there are 6 built in styles for page labels:
         <ul>
             <li>Arabic numerals (1, 2, 3, 4, 5...)</li>
             <li>Uppercase roman numerals (I, II, III, IV, V...)</li>
             <li>Lowercase roman numerals (i, ii, iii, iv, v...)</li>
             <li>Uppercase letters (A, B, C, D, E...)</li>
             <li>Lowercase letters (a, b, c, d, e...)</li>
-            <li>Custom lable (eg. foo)</li>
+            <li>Custom label (eg. foo)</li>
         </ul>
-    In a PDF you can freely mix and match this to your liking. For example you could use a custom lable to make the cover/first page of your document, then uppercase roman numerals for the index, and lastly arabic numerals for the actual content of your document.
+    In a PDF you can freely mix and match this to your liking. For example you could use a custom label to make the cover/first page of your document, then uppercase roman numerals for the index, and lastly arabic numerals for the actual content of your document.
     </p>
     <h2>How do I use the website?</h2>
-    <p>Once selected a document, you'll be presented with the list of already existing page lables, you can then create new page lables, select a syle, a prefix and a starting number. Once you are done you can click save and the modified document will be downloaded.</p>
+    <p>Once selected a document, you'll be presented with the list of already existing page labels, you can then create new page labels, select a syle, a prefix and a starting number. Once you are done you can click save and the modified document will be downloaded.</p>
     <h2>How safe is the website?</h2>
-    <p>All documents get processed locally on your browser, no data gets sent to any server. You can check the code on <a href="https://github.com/Leone25/pdf-labler/">Github</a>.</p>
+    <p>All documents get processed locally on your browser, no data gets sent to any server. You can check the code on <a href="https://github.com/Leone25/pdf-labeler/">Github</a>.</p>
     <h2>How do I contact for help, feedback or to contribute?</h2>
-    <p>If you have anything to say just open an issue on <a href="https://github.com/Leone25/pdf-labler/">Github</a>! I'm always happy to help, hear from users and receive feedback to improove :)</p>
+    <p>If you have anything to say just open an issue on <a href="https://github.com/Leone25/pdf-labeler/">Github</a>! I'm always happy to help, hear from users and receive feedback to improove :)</p>
     <div class="loading" v-if="loading"></div>
 </div>
 <script>
